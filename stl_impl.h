@@ -14,26 +14,38 @@ namespace stl_impl {
     private:
         T* ptr;
     public:
-        unique_ptr() noexcept : ptr(nullptr) {}
-        unique_ptr(T* new_ptr) noexcept : ptr(new_ptr) {}
-        unique_ptr(unique_ptr&& move_ptr) {
-            ptr = move_ptr.ptr;
+        unique_ptr() noexcept 
+        : ptr{nullptr} {}
+        unique_ptr(T* new_ptr) noexcept 
+        : ptr{new_ptr} {}
+        unique_ptr(unique_ptr&& move_ptr)
+        : ptr{std::move(move_ptr)} {
             move_ptr.ptr = nullptr;
         }
         ~unique_ptr(){
-            if (get() == nullptr){
-
-            } else {
+            if (get()){
                 delete ptr;
                 ptr = nullptr;
             }
-            
         }
 
         unique_ptr& operator=(unique_ptr&& move_ptr){
+            if(this == move_ptr) {
+                return *this;
+            }
+            if(ptr) {
+                delete ptr;  
+            }
             ptr = move_ptr.ptr;
             move_ptr.ptr = nullptr;
             return *this;
+        }
+        void reset(T* new_ptr){
+            T* old_ptr = ptr;
+            ptr = new_ptr;
+            if(old_ptr){
+                delete old_ptr;
+            }
         }
         T* get() const noexcept{
             return ptr;
@@ -65,23 +77,22 @@ namespace stl_impl {
     template <typename T>
     class forward_list {
     private:
-        struct node:  {
+        struct node {
             unique_ptr<node> pNext;
             T data;
             node(){}
-            node(T new_data = T(), unique_ptr<node> new_pNext = nullptr) : data{new_data} , pNext{new_pNext}
+            node(T new_data = T(), unique_ptr<node> new_pNext = nullptr) : data{new_data} , pNext{new_pNext} {}
         };
-        node* head;
+        unique_ptr<node> head;
     public:
-        forward_list(): head(nullptr) {}
+        forward_list(): head{nullptr} {}
         ~forward_list(){
-            
         }
-        clear(){
-            while(head){
-
-            }
-        }
+        // clear(){
+        //     while(head){
+        //         head = std::move(head->get());
+        //     }
+        // }
     
     
     
