@@ -1,3 +1,4 @@
+// Copyright 2021 Shemetov Philipp
 
 #ifndef __STL_IMPL__
 #define __STL_IMPL__
@@ -8,7 +9,7 @@ namespace stl_impl {
 
     
 
-    //Имплементация умного указателя(пока что без Deleter и специализации на T[])
+    //Имплементация умного указателя(пока что без Deleter и частичной специализации на T[])
     template<typename T>
     class unique_ptr{
     private:
@@ -18,8 +19,8 @@ namespace stl_impl {
         : ptr{nullptr} {}
         unique_ptr(T* new_ptr) noexcept 
         : ptr{new_ptr} {}
-        unique_ptr(unique_ptr&& move_ptr)
-        : ptr{std::move(move_ptr)} {
+        unique_ptr(unique_ptr<T>&& move_ptr)
+        : ptr{std::move(move_ptr.ptr)} {
             move_ptr.ptr = nullptr;
         }
         ~unique_ptr(){
@@ -29,8 +30,8 @@ namespace stl_impl {
             }
         }
 
-        unique_ptr& operator=(unique_ptr&& move_ptr){
-            if(this == move_ptr) {
+        unique_ptr<T>& operator=(unique_ptr<T>&& move_ptr){
+            if(this == &move_ptr) {
                 return *this;
             }
             if(ptr) {
@@ -61,13 +62,13 @@ namespace stl_impl {
             ptr = nullptr;
             return temp_ptr;
         }
-        friend bool operator==(const unique_ptr<T>& ptr1, const unique_ptr<T>& ptr2){
-            return *ptr1.get() == *ptr2.get() ? true : false;
-        }
+        // friend bool operator==(const unique_ptr<T>& ptr1, const unique_ptr<T>& ptr2){
+        //     return *ptr1.get() == *ptr2.get() ? true : false;
+        // }
 
-        friend bool operator!=(const unique_ptr<T>& ptr1, const unique_ptr<T>& ptr2){
-            return *ptr1.get() != *ptr2.get() ? true : false;
-        }
+        // friend bool operator!=(const unique_ptr<T>& ptr1, const unique_ptr<T>& ptr2){
+        //     return *ptr1.get() != *ptr2.get() ? true : false;
+        // }
         
 
 
