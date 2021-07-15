@@ -62,13 +62,13 @@ namespace stl_impl {
             ptr = nullptr;
             return temp_ptr;
         }
-        // friend bool operator==(const unique_ptr<T>& ptr1, const unique_ptr<T>& ptr2){
-        //     return *ptr1.get() == *ptr2.get() ? true : false;
-        // }
+        friend bool operator==(const unique_ptr<T>& ptr1, const unique_ptr<T>& ptr2){
+            return *ptr1.get() == *ptr2.get() ? true : false;
+        }
 
-        // friend bool operator!=(const unique_ptr<T>& ptr1, const unique_ptr<T>& ptr2){
-        //     return *ptr1.get() != *ptr2.get() ? true : false;
-        // }
+        friend bool operator!=(const unique_ptr<T>& ptr1, const unique_ptr<T>& ptr2){
+            return *ptr1.get() != *ptr2.get() ? true : false;
+        }
         
 
 
