@@ -1,8 +1,14 @@
 #include <gtest/gtest.h>
 #include "stl_impl.h"
 
+//TEST_UNIQUE_PTR
 
-TEST(STL_IMPL_UNIQUE_PTR, TEST_DEFAULT_CONSTRUCTOR) {
+TEST(STL_IMPL_UNIQUE_PTR, TEST_IS_CONSTRUCTIBLE) {
+
+    EXPECT_TRUE(std::is_constructible<stl_impl::unique_ptr<int>>::value);
+}
+
+TEST(STL_IMPL_UNIQUE_PTR, TEST_INIT_DEFAULT_CONSTRUCTOR) {
   stl_impl::unique_ptr<int> ptr{};
   EXPECT_EQ(ptr.get(), nullptr);
 }
@@ -42,3 +48,20 @@ TEST(STL_IMPL_UNIQUE_PTR, TEST_METHOD_RESET) {
 
   EXPECT_EQ(*ptr,42);
 }
+
+//TEST FORWARD_LIST
+
+TEST(STL_IMPL_FORWARD_LIST, TEST_IS_CONSTRUCTIBLE) {
+
+    EXPECT_TRUE(std::is_constructible<stl_impl::forward_list<int>>::value);
+}
+
+//TEST(STL_IMPL_FORWARD_LIST, TEST_INIT_DEFAULT_CONSTRUCTOR) {
+//    stl_impl::forward_list<int> forwardList;
+//    EXPECT_EQ(forwardList);
+//}
+
+//TEST(STL_IMPL_FORWARD_LIST, TEST_IS_DEFAULT_CONSTRUCTOR) {
+//    stl_impl::forward_list<int> forwardList;
+//    EXPECT_EQ(forwardList);
+//}
