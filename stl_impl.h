@@ -4,6 +4,7 @@
 #define __STL_IMPL__
 
 #include <utility>
+#include <memory>
 
 //Имплементация свой библиотеки на основе stl(для обучения и получения опыта)
 //TO DO...
@@ -17,112 +18,27 @@
 //Пока что только для контейнеров и вспомогательных классов
 namespace stl_impl {
 
-    template <typename T>
-    class forward_list;
-    //Имплементация итератора
-    template<typename T>
-    struct iterator {
-
-        using value_type = T;
-        using reference = T&;
-        using pointer = T*;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category = std::random_access_iterator_tag;
-
-
-        iterator() = default;
-
-        iterator(const iterator &it) : ptr{it.ptr} {}
-
-        iterator& operator=(const iterator & it) {
-            ptr = it.ptr;
-            return *this;
-        }
-
-        ~iterator() {
-
-        }
-
-        reference operator*() const {
-            return *ptr;
-        }
-
-        reference operator++(){
-            ++ptr;
-
-            return *this;
-        };
-
-    protected:
-        iterator(T* value) : ptr{value} {}
-
-        friend class forward_list<T>;
-
-        pointer ptr{nullptr};
-    };
-
-    template <typename T>
-    struct input_iterator : public virtual iterator<T>{
-
-        using value_type = T;
-        using reference = T&;
-        using pointer = T*;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category = std::input_iterator_tag;
-
-        iterator<T> operator++(int){
-            iterator<T> tmp = *this;
-            ++this->ptr;
-            return tmp;
-        }
-        value_type operator*() const {
-            return *this->ptr;
-        }
-        pointer operator->() const {
-            return this->ptr;
-        };
-        friend bool operator==(const iterator<T>& it_first, const iterator<T>& it_second){
-            return it_first.ptr == it_second.ptr;
-        }
-        friend bool operator!=(const iterator<T>& it_first, const iterator<T>& it_second){
-            return it_first.ptr != it_second.ptr;
-        }
-
-
-    };
-
-    template <typename T>
-    struct output_iterator : public virtual iterator<T>{
-        using value_type = T;
-        using reference = T&;
-        using pointer = T*;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category = std::output_iterator_tag;
-
-        reference operator*() const{
-            return *this->ptr;
-        }
-    };
-
-    template <typename T>
-    struct forward_iterator : output_iterator<T>,input_iterator<T>{
-        forward_iterator(){
-
-        }
-    };
-
-
     //Имплементация умного указателя(пока что без Deleter и частичной специализации на T[])
     template<typename T>
     class unique_ptr {
     private:
-        T *ptr;
+        T* ptr;
     public:
         unique_ptr() noexcept
-                : ptr{nullptr} {}
+                : ptr{nullptr} {
 
-        explicit unique_ptr(T *new_ptr) noexcept
-                : ptr{new_ptr} {}
+        }
+
+        unique_ptr(std::nullptr_t _ptr) noexcept
+                : ptr{_ptr} {}
+
+
+        explicit unique_ptr(T* new_ptr) noexcept
+                : ptr{new_ptr} {
+
+        }
+
+        unique_ptr(const unique_ptr&) = delete;
 
         unique_ptr(unique_ptr &&move_ptr) noexcept
                 : ptr{std::move(move_ptr.ptr)} {
@@ -136,16 +52,21 @@ namespace stl_impl {
             }
         }
 
+
+        unique_ptr& operator=(const unique_ptr&) = delete;
+
         unique_ptr &operator=(unique_ptr &&move_ptr) noexcept {
             if (this == &move_ptr) {
                 return *this;
             }
-            if (ptr) {
-                delete ptr;
-            }
             ptr = move_ptr.ptr;
             move_ptr.ptr = nullptr;
-            return *this;
+//            if (ptr) {
+//                delete ptr;
+//            }
+//            ptr = move_ptr.ptr;
+//            move_ptr.ptr = nullptr;
+//            return *this;
         }
 
         void reset(T *new_ptr) {
@@ -190,23 +111,80 @@ namespace stl_impl {
     };
 
     template<typename T, typename... Args>
-    std::enable_if<!std::is_array<T>::value, unique_ptr<T>> make_unique(Args... args) {
+    typename std::enable_if<!std::is_array<T>::value, unique_ptr<T>>::type make_unique(Args&&... args) {
         return unique_ptr<T>(new T(std::forward<Args>(args)...));
     };
 
     //Имплементация односвязного списка
     template<typename T>
     class forward_list {
+    protected:
+        struct node {
+            unique_ptr<node> pNext;
+            T data;
+
+            node() = default;
+
+            explicit node(T new_data = T(), unique_ptr<node> new_pNext = nullptr) : data{new_data}, pNext{new_pNext.get()} {}
+        };
+
+        size_t size;
+        unique_ptr<node> head;
+
     public:
 
-        forward_iterator<T> begin() const{
-            return forward_iterator<T>();
-        }
-        forward_iterator<T> end() const{
+        class iterator{
+        public:
+            using value_type = T;
+            using reference = T&;
+            using pointer = T*;
+            using difference_type = std::ptrdiff_t;
+            using iterator_category = std::forward_iterator_tag;
 
+            iterator() = default;
+
+            ~iterator() = default;
+
+            explicit iterator(node* _ptr){
+                ptr = _ptr;
+            }
+
+            iterator(const iterator& it)
+                : ptr{it.ptr} {
+
+            }
+
+            iterator& operator=(const iterator& it){
+                ptr = it.ptr;
+                return *this;
+            }
+
+            value_type operator*() const {
+                return ptr->data;
+            }
+
+            pointer operator->() const {
+                return ptr;
+            }
+
+            iterator& operator++(){
+                if(ptr->pNext){
+                    ptr = ptr->pNext;
+                }
+
+                return *this;
+            }
+        private:
+            node* ptr{nullptr};
+
+        };
+
+        iterator begin(){
+            return iterator(head.get());
         }
 
         forward_list() : head{nullptr} {}
+
 //        forward_list(std::initializer_list<T> init){
 
 //
@@ -215,10 +193,12 @@ namespace stl_impl {
             clear();
         };
 
+
+
         void push_front(T data) {
-            if (head == nullptr) {
-                head = make_unique<node>(data, nullptr);
-            }
+            unique_ptr<node> temp = make_unique<node>(data);
+            if(head) temp->pNext = std::move(head);
+            head = std::move(temp);
         }
 
         void push_back(T data) {
@@ -230,18 +210,6 @@ namespace stl_impl {
                 head = std::move(head->pNext);
             }
         }
-
-    private:
-        struct node {
-            unique_ptr<node> pNext;
-            T data;
-
-            node() = default;
-
-            explicit node(T new_data = T(), unique_ptr<node> new_pNext = nullptr) : data{new_data}, pNext{new_pNext} {}
-        };
-
-        unique_ptr<node> head;
 
 
     };
