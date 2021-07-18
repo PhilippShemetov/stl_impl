@@ -61,12 +61,7 @@ namespace stl_impl {
             }
             ptr = move_ptr.ptr;
             move_ptr.ptr = nullptr;
-//            if (ptr) {
-//                delete ptr;
-//            }
-//            ptr = move_ptr.ptr;
-//            move_ptr.ptr = nullptr;
-//            return *this;
+            return *this;
         }
 
         void reset(T *new_ptr) {
@@ -120,16 +115,16 @@ namespace stl_impl {
     class forward_list {
     protected:
         struct node {
-            unique_ptr<node> pNext;
+            node* pNext;
             T data;
 
             node() = default;
 
-            explicit node(T new_data = T(), unique_ptr<node> new_pNext = nullptr) : data{new_data}, pNext{new_pNext.get()} {}
+            explicit node(T new_data = T(), node* new_pNext = nullptr) : data{new_data}, pNext{new_pNext} {}
         };
 
         size_t size;
-        unique_ptr<node> head;
+        node* head;
 
     public:
 
@@ -168,19 +163,44 @@ namespace stl_impl {
             }
 
             iterator& operator++(){
-                if(ptr->pNext){
-                    ptr = ptr->pNext;
-                }
+
+                ptr = ptr->pNext;
 
                 return *this;
+            }
+
+            iterator operator++(int){
+                iterator copy{*this};
+                ptr = ptr->pNext;
+
+                return copy;
+            }
+            friend bool operator==(const iterator& lhs, const iterator& rhs)
+            {
+                return lhs._ptr == rhs._ptr;
+            }
+            friend bool operator!=(const iterator& lhs, const iterator& rhs)
+            {
+                return lhs.ptr != rhs.ptr;
+            }
+            friend bool operator<(const iterator& lhs, const iterator& rhs) {
+                return lhs._ptr < rhs._ptr;
             }
         private:
             node* ptr{nullptr};
 
         };
 
-        iterator begin(){
-            return iterator(head.get());
+        iterator begin() const {
+            return iterator(head);
+        }
+
+        iterator end() const{
+            node* temp = head;
+            while(temp){
+                temp = temp->pNext;
+            }
+            return iterator(temp);
         }
 
         forward_list() : head{nullptr} {}
@@ -193,21 +213,34 @@ namespace stl_impl {
             clear();
         };
 
-
-
         void push_front(T data) {
-            unique_ptr<node> temp = make_unique<node>(data);
-            if(head) temp->pNext = std::move(head);
-            head = std::move(temp);
+
+            if(head == nullptr)
+                head = new node(data);
+            else{
+                head = new node(data,head);
+            }
+
+
         }
 
         void push_back(T data) {
-
+            if(head == nullptr){
+                head = new node(data);
+            } else {
+                node* temp = head;
+                while(temp->pNext){
+                    temp = temp->pNext;
+                }
+                temp->pNext = new node(data);
+            }
         }
 
         void clear() {
             while (head) {
-                head = std::move(head->pNext);
+                node* temp = head;
+                head = head->pNext;
+                delete temp;
             }
         }
 

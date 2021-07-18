@@ -49,6 +49,9 @@ TEST(STL_IMPL_UNIQUE_PTR, TEST_METHOD_RESET) {
   EXPECT_EQ(*ptr,42);
 }
 
+
+//TEST FORWARD_LIST ITERATOR
+
 //TEST FORWARD_LIST
 
 TEST(STL_IMPL_FORWARD_LIST, TEST_IS_CONSTRUCTIBLE) {
@@ -64,6 +67,18 @@ TEST(STL_IMPL_FORWARD_LIST, TEST_IS_CONSTRUCTIBLE) {
 TEST(STL_IMPL_FORWARD_LIST, TEST_IS_DEFAULT_CONSTRUCTOR) {
     stl_impl::forward_list<int> forwardList;
     forwardList.push_front(99);
-    auto it = forwardList.begin();
+    forwardList.push_front(120);
+    forwardList.push_front(340);
+    forwardList.push_back(200);
+
+
+    stl_impl::forward_list<int>::iterator it;
+    it = forwardList.begin();
+    for(;it!=forwardList.end();++it){
+        std::cout << " " << *it;
+    }
+//    auto it = forwardList.begin();
+//    std::cout << *it;
+
     EXPECT_TRUE(true);
 }
