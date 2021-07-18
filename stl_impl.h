@@ -17,6 +17,8 @@
 //Пока что только для контейнеров и вспомогательных классов
 namespace stl_impl {
 
+    template <typename T>
+    class forward_list;
     //Имплементация итератора
     template<typename T>
     struct iterator {
@@ -24,6 +26,8 @@ namespace stl_impl {
         using value_type = T;
         using reference = T&;
         using pointer = T*;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::random_access_iterator_tag;
 
 
         iterator() = default;
@@ -52,7 +56,9 @@ namespace stl_impl {
     protected:
         iterator(T* value) : ptr{value} {}
 
-        T* ptr{nullptr};
+        friend class forward_list<T>;
+
+        pointer ptr{nullptr};
     };
 
     template <typename T>
@@ -64,26 +70,45 @@ namespace stl_impl {
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::input_iterator_tag;
 
-        input_iterator operator++(int){
-            input_iterator tmp = *this;
-            ++ptr;
+        iterator<T> operator++(int){
+            iterator<T> tmp = *this;
+            ++this->ptr;
             return tmp;
         }
         value_type operator*() const {
-            return *ptr;
+            return *this->ptr;
         }
         pointer operator->() const {
-            return ptr;
+            return this->ptr;
         };
-        friend bool operator==(const input_iterator& it_first, const input_iterator& it_second){
+        friend bool operator==(const iterator<T>& it_first, const iterator<T>& it_second){
             return it_first.ptr == it_second.ptr;
         }
-        friend bool operator!=(const input_iterator& it_first, const input_iterator& it_second){
+        friend bool operator!=(const iterator<T>& it_first, const iterator<T>& it_second){
             return it_first.ptr != it_second.ptr;
         }
 
-    private:
-        T* ptr{nullptr};
+
+    };
+
+    template <typename T>
+    struct output_iterator : public virtual iterator<T>{
+        using value_type = T;
+        using reference = T&;
+        using pointer = T*;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::output_iterator_tag;
+
+        reference operator*() const{
+            return *this->ptr;
+        }
+    };
+
+    template <typename T>
+    struct forward_iterator : output_iterator<T>,input_iterator<T>{
+        forward_iterator(){
+
+        }
     };
 
 
@@ -172,24 +197,20 @@ namespace stl_impl {
     //Имплементация односвязного списка
     template<typename T>
     class forward_list {
-    private:
-        struct node {
-            unique_ptr<node> pNext;
-            T data;
-
-            node() = default;
-
-            explicit node(T new_data = T(), unique_ptr<node> new_pNext = nullptr) : data{new_data}, pNext{new_pNext} {}
-        };
-
-        unique_ptr<node> head;
     public:
-        forward_list() : head{nullptr} {}
 
+        forward_iterator<T> begin() const{
+            return forward_iterator<T>();
+        }
+        forward_iterator<T> end() const{
+
+        }
+
+        forward_list() : head{nullptr} {}
 //        forward_list(std::initializer_list<T> init){
+
 //
 //        }
-
         ~forward_list() {
             clear();
         };
@@ -209,6 +230,18 @@ namespace stl_impl {
                 head = std::move(head->pNext);
             }
         }
+
+    private:
+        struct node {
+            unique_ptr<node> pNext;
+            T data;
+
+            node() = default;
+
+            explicit node(T new_data = T(), unique_ptr<node> new_pNext = nullptr) : data{new_data}, pNext{new_pNext} {}
+        };
+
+        unique_ptr<node> head;
 
 
     };

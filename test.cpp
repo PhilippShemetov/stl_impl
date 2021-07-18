@@ -61,7 +61,9 @@ TEST(STL_IMPL_FORWARD_LIST, TEST_IS_CONSTRUCTIBLE) {
 //    EXPECT_EQ(forwardList);
 //}
 
-//TEST(STL_IMPL_FORWARD_LIST, TEST_IS_DEFAULT_CONSTRUCTOR) {
-//    stl_impl::forward_list<int> forwardList;
-//    EXPECT_EQ(forwardList);
-//}
+TEST(STL_IMPL_FORWARD_LIST, TEST_IS_DEFAULT_CONSTRUCTOR) {
+    stl_impl::forward_list<int> forwardList{};
+    auto it = forwardList.begin();
+    std::cout << *it;
+    EXPECT_EQ(it, nullptr);
+}
